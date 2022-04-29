@@ -37,12 +37,13 @@ var textareaBuffer  []string
 
 // Other global variables
 
-var inIRC           bool        = false
+var inIRC           bool            = false
+var offset          int16          = 0
+var re              *regexp.Regexp
 
 //go:embed gfx/*
 var fs              embed.FS
 
-var re              *regexp.Regexp
 
 var err             error
 
@@ -70,6 +71,16 @@ func winInit() {
         log.Fatal("Unable to create window:", err)
     }
     win.SetTitle("Terminal")
+    win.AddEvents(2097152)
+    win.Connect("scroll-event", func(w *gtk.EventBox, event *gdk.Event) {
+        dir := int16(gdk.EventScrollNewFromEvent(event).DeltaY())
+        fmt.Println(offset)
+        offset -= dir
+        if(offset < 0) {
+            offset = 0
+        }
+        updateTextarea()
+    })
 
     win.Connect("destroy", func() {
         gtk.MainQuit()
@@ -121,6 +132,7 @@ func winBuild() {
     // Input Textbox
     input, _ = gtk.EntryNew()
     input.Connect("activate", sendCommand)
+
 
     // The rest of the window
     rest, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -196,7 +208,12 @@ func updateTextarea() {
     width, height := win.GetSize()
     textareaBuffer_ := textareaBuffer
     if(areaLength > height/20) {
-        textareaBuffer_ = textareaBuffer[areaLength-(height/20):areaLength]
+        startat := areaLength-(height/20)-int(offset)
+        if(startat < 0) {
+            startat = 0
+            offset--
+        }
+        textareaBuffer_ = textareaBuffer[startat:areaLength-int(offset)]
     }
     for _, v := range textareaBuffer_ {
         toAppend := v
@@ -206,12 +223,7 @@ func updateTextarea() {
         if(len(toAppend) > width/6) {
             toAppend = v[0:width/6]
         }
-        fmt.Println(len(toAppend))
-        fmt.Println(width/6)
         text += toAppend+"\n"
-    }
-    for _, v := range text {
-        fmt.Print(string(v)+"|")
     }
     textarea.SetText(text)
 }
