@@ -6,10 +6,14 @@ import (
     "embed"
     "regexp"
     "fmt"
+    "time"
 
     "github.com/gotk3/gotk3/gdk"
     "github.com/gotk3/gotk3/gtk"
 )
+
+var Start time.Time
+var end time.Time
 
 // We define every GTK related variable here because it gives us a pretty decent boost in boot up time.
 
@@ -64,7 +68,6 @@ func WinInit() {
         if(offset < 0) {
             offset = 0
         }
-        fmt.Println("calling updateTextarea() from scroll")
         updateTextarea()
     })
     win.Connect("destroy", func() {
@@ -153,17 +156,14 @@ func WinLoop() {
     re = regexp.MustCompile(`(␛|\033|\x1B|)(\[)([0-9]{1,2}|m)([A-z]|[0-9]{1,2})(;([0-9]{1,3}(m|))){0,2}`)
     winContext, err := win.GetStyleContext()
     if(err == nil) {winContext.AddProvider(css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)}
-    bitch()
+    end = time.Now()
+    fmt.Println(end.Sub(Start))
+    gtk.Main()
 }
 
-func bitch() {
-	defer bitch()
-	gtk.Main()
-}
 
 func sendToTextarea(str string) {
 	textareaBuffer = append(textareaBuffer, str)
-	fmt.Println("calling updateTextarea from sendToTextarea")
 	updateTextarea()
 }
 
@@ -187,28 +187,22 @@ func updateTextarea() {
         }
         textareaBuffer_ = textareaBuffer[startat:areaLength-int(offset)]
     }
-    for i, v := range textareaBuffer_ {
-    	fmt.Println(i)
+    for _, v := range textareaBuffer_ {
         toAppend_ := v
         // Strip any bash control characters out
         toAppend := re.ReplaceAllString(toAppend_, "")
         if(len(toAppend) > width/6) {
         	toAppend_ := ""
         	for i := 0; i < len(toAppend); i+=(width/6)-3 {
-        		fmt.Printf("chunk %d\n",i)
         		until := i+((width/6)-3)
-        		fmt.Printf("going until %d\n",i)
         		if(len(toAppend) < i+((width/6)-3)) {
         			until = len(toAppend)
-        			fmt.Printf("nvm going until %d\n",until)
         		}
         		toAppend_ += v[i:until]
-        		fmt.Println("appending %v\n",toAppend_)
         	}
             toAppend = toAppend_
         }
         text += toAppend+"\n"
-        fmt.Println(text)
     }
     // If we're within the limit for lines on screen...
     if(areaLength < areaMax) {
