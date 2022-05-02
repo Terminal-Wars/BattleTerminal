@@ -1,7 +1,8 @@
 package src
 
 import (
-    //"fmt"
+    "fmt"
+    "net"
     "os/exec"
     "strings"
 )
@@ -32,6 +33,8 @@ func sendCommand() {
                 default: cmd = exec.Command(commands[0])
             }
             switch(commands[0]) {
+            // !!! THIS IS DISCOURAGED! MOST COMMANDS SHOULD BE PROGRAMS.
+            // THIS SHOULD ONLY BE USED FOR THE BUILT IN IRC SHIT AND TESTING.
                 // built in IRC shit
                 case "user", "nick":
                     if(len(commands) == 1) {
@@ -50,6 +53,15 @@ func sendCommand() {
                             sendToTextarea(err)
                         }()
                     }
+                // net testing shit
+                case "pinglocal":
+                    conn, err := net.Dial("tcp", ":48889")
+                    if(err != nil) {
+                        fmt.Println(err)
+                        return
+                    }
+                    fmt.Fprintf(conn, "Ping!")
+                    conn.Close()
                 // regular commands
                 default:
                     output, err := cmd.Output()
