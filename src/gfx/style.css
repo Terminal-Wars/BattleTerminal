@@ -1,0 +1,9 @@
+* {
+	font-size: 12px;
+}
+.textarea {
+	background: white;
+	margin: 5px;
+	color: black;
+	border: 1px solid black;
+}
