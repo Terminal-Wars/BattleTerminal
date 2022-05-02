@@ -11,6 +11,7 @@ var inIRC           bool            = false
 func sendCommand() {
     text, _ := input.GetText()
     input.SetText("")
+    if(len(text) <= 0) {return}
     // is our message prefixed with /?
     if(string(text[0]) == "/") {
         text := strings.Replace(text,"/","",2)
@@ -59,7 +60,21 @@ func sendCommand() {
                         outputs = strings.Split(string(output), "\n")
                     }
                     for _, v := range outputs {
-                        sendToTextarea(v)
+                        // some text editors fuck with unicode ig so we have to compare with this
+                        clear := string([]byte{27,91,72,27,91,50,74,27,91,51,74})
+                        clear_x := string([]byte{27,91,72,27,91,50,74})
+                        switch(v) {
+                            case clear:
+                                textareaBuffer = textareaBuffer[:0]
+                                updateTextarea()
+                            case clear_x:
+                                _, height := win.GetSize()
+                                areaMax := (height/20)
+                                for i := 0; i < areaMax; i++ {
+                                    sendToTextarea("")
+                                }
+                            default: sendToTextarea(v)
+                        }
                     }
             }
         }

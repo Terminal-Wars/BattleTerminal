@@ -214,7 +214,3 @@ func updateTextarea() {
     }
     textarea.SetText(text)
 }
-
-// gtk randomly crashes without any helpful error (it's literally random each time).
-// god only knows why but here's a function to catch it's panics and try to keep chugging
-// along
