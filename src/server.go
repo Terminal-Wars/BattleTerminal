@@ -27,7 +27,7 @@ func connHandle(conn net.Conn) {
 	eCh := make(chan error)
 	go func() {
 		for {
-			data := make([]byte,512)
+			data := make([]byte,1024)
 			_, err := conn.Read(data)
 			if(err != nil) {
 				eCh<- err
