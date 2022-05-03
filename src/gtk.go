@@ -18,25 +18,26 @@ var end time.Time
 // We define every GTK related variable here because it gives us a pretty decent boost in boot up time.
 
 // Window variables
-var win 			*gtk.Window
-var vbox 			*gtk.Box
-var bottom 			*gtk.Box
-var rest            *gtk.Box
-var css             *gtk.CssProvider
+var win 			        *gtk.Window
+var vbox 			        *gtk.Box
+var bottom 			        *gtk.Box
+var rest                    *gtk.Box
+var css                     *gtk.CssProvider
 
 // Buttons
-var charSwitch		*gtk.Button
-var charSwitchImage *gtk.Image
-var attack			*gtk.Button
-var attackImage     *gtk.Image
-var inventory		*gtk.Button
-var inventoryImage  *gtk.Image
+var charSwitch		        *gtk.Button
+var charSwitchImage         *gtk.Image
+var attack			        *gtk.Button
+var attackImage             *gtk.Image
+var inventory		        *gtk.Button
+var inventoryImage          *gtk.Image
 
 // Input areas and their needed variables.
-var	input			*gtk.Entry
-var	textarea		*gtk.Label
-var textareaBuffer  []string
-
+var	input			        *gtk.Entry
+var	textarea		        *gtk.Label
+var textareaWrapper         *gtk.ScrolledWindow
+var textareaBuffer          []string
+var textareaAdjustment      *gtk.Adjustment
 
 // Other global variables
 
@@ -126,7 +127,13 @@ func WinBuild() {
     rest, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
     
     // Output Textarea
-    
+    textareaWrapper, _ = gtk.ScrolledWindowNew(nil, nil)
+    textareaWrapper.SetMaxContentWidth(4)
+    textareaWrapper.SetMaxContentHeight(4)
+    textareaWrapper.SetPlacement(gtk.CORNER_BOTTOM_RIGHT)
+    textareaWrapper.SetOverlayScrolling(true)
+    textareaAdjustment = textareaWrapper.GetVAdjustment()
+
     textarea, _ = gtk.LabelNew("")
     textarea.SetXAlign(-1)
     textarea.SetLineWrap(true)
@@ -136,6 +143,8 @@ func WinBuild() {
     textareastyle.AddClass("textarea")
     textareastyle.AddProvider(css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
+    textareaWrapper.Add(textarea)
+
     // Add all this shit to the window.
     
     bottom.PackStart(charSwitch, false, false, 0)
@@ -143,7 +152,7 @@ func WinBuild() {
     bottom.PackStart(attack, false, false, 0)
     bottom.PackEnd(inventory, false, false, 0)
     
-    rest.PackStart(textarea, true, true, 0)
+    rest.PackEnd(textareaWrapper, true, true, 0)
 
     vbox.PackStart(rest, true, true, 0)
     vbox.PackEnd(bottom, false, false, 0)
@@ -158,9 +167,14 @@ func WinLoop() {
     if(err == nil) {winContext.AddProvider(css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)}
     end = time.Now()
     fmt.Println(end.Sub(Start))
-    gtk.Main()
+    bitch()
 }
 
+// function to try and catch when the gtk.Main process crashes and doesn't let it.
+func bitch() {
+    defer bitch()
+    gtk.Main()
+}
 
 func sendToTextarea(str string) {
 	textareaBuffer = append(textareaBuffer, str)
@@ -168,39 +182,21 @@ func sendToTextarea(str string) {
 }
 
 func updateTextarea() {
+    textareaAdjustment.SetValue(textareaAdjustment.GetUpper())
     width, height := win.GetSize()
     var text string
     areaLength := len(textareaBuffer)
-    // create a clone of the textarea buffer
-    // so that we can create a shrunken clone of it if we need to
-    textareaBuffer_ := textareaBuffer
     areaMax := (height/20)-1
-    // If we're above the limit for lines on the screen...
-    if(areaLength > areaMax) {
-        // Only show a certain selection of the text buffer
-        // (which is different depending on if we've scrolled)
-        startat := areaLength-(areaMax)-int(offset)
-        // Make sure we never scroll beyond the array's limits. 
-        if(startat < 0) {
-            startat = 0
-            offset--
-        }
-        textareaBuffer_ = textareaBuffer[startat:areaLength-int(offset)]
-    }
-    for _, v := range textareaBuffer_ {
+    for _, v := range textareaBuffer {
         toAppend_ := v
         // Strip any bash control characters out
         toAppend := re.ReplaceAllString(toAppend_, "")
+        // If the line we're appending is longer then the window...
         if(len(toAppend) > width/6) {
-        	toAppend_ := ""
-        	for i := 0; i < len(toAppend); i+=(width/6)-3 {
-        		until := i+((width/6)-3)
-        		if(len(toAppend) < i+((width/6)-3)) {
-        			until = len(toAppend)
-        		}
-        		toAppend_ += v[i:until]
-        	}
-            toAppend = toAppend_
+            // ...cut it down.
+            // (todo: find out how to wrap the text while respecting the bounds of
+            // the window)
+            toAppend = v[0:((width/6)-3)]
         }
         text += toAppend+"\n"
     }
