@@ -68,69 +68,82 @@ func WinInit() {
 }
 
 func WinBuild() {
-    // from here on we start to ignore GTK errors because the even the devs of the library
-    // don't seem to do much with them in examples, probably because gtk just prints the error and
-    // go usually can't handle it and it's a waste of time and memory to expect err to ever return
-    // anything useful.
 
     // Firstly, load in the CSS file.
-    css, _ = gtk.CssProviderNew()
+    css, err = gtk.CssProviderNew()
+    if(err != nil) {panic(err)}
     cssData, err := fs.ReadFile("gfx/style.css")
     if(err != nil) {panic(err)}
     css.LoadFromData(string(cssData))
 
     // Main VBox
-    vbox, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    vbox, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if(err != nil) {panic(err)}
 
     // Bottommost section of the window
-    bottom, _ = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    bottom, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+    if(err != nil) {panic(err)}
 
     // Buttons
 
     // The errors are never useful anyways
-    charSwitch, _ = gtk.ButtonNew()
+    charSwitch, err = gtk.ButtonNew()
+    if(err != nil) {panic(err)}
     charSwitchFile, err := fs.ReadFile("gfx/charswitch.png")
     if(err != nil) {panic(err)}
-    charSwitchPixbuf, _ := gdk.PixbufNewFromBytesOnly(charSwitchFile)
-    charSwitchImage, _ = gtk.ImageNewFromPixbuf(charSwitchPixbuf)
+    charSwitchPixbuf, err := gdk.PixbufNewFromBytesOnly(charSwitchFile)
+    if(err != nil) {panic(err)}
+    charSwitchImage, err = gtk.ImageNewFromPixbuf(charSwitchPixbuf)
+    if(err != nil) {panic(err)}
     charSwitch.SetImage(charSwitchImage)
 
-    attack, _ = gtk.ButtonNew()
+    attack, err = gtk.ButtonNew()
+    if(err != nil) {panic(err)}
     attackFile, err := fs.ReadFile("gfx/attack.png")
     if(err != nil) {panic(err)}
-    attackPixbuf, _ := gdk.PixbufNewFromBytesOnly(attackFile)
-    attackImage, _ = gtk.ImageNewFromPixbuf(attackPixbuf)
+    attackPixbuf, err := gdk.PixbufNewFromBytesOnly(attackFile)
+    if(err != nil) {panic(err)}
+    attackImage, err = gtk.ImageNewFromPixbuf(attackPixbuf)
+    if(err != nil) {panic(err)}
     attack.SetImage(attackImage)
 
-    inventory, _ = gtk.ButtonNew()
+    inventory, err = gtk.ButtonNew()
+    if(err != nil) {panic(err)}
     inventoryFile, err := fs.ReadFile("gfx/bag.png")
     if(err != nil) {panic(err)}
-    inventoryPixbuf, _ := gdk.PixbufNewFromBytesOnly(inventoryFile)
-    inventoryImage, _ = gtk.ImageNewFromPixbuf(inventoryPixbuf)
+    inventoryPixbuf, err := gdk.PixbufNewFromBytesOnly(inventoryFile)
+    if(err != nil) {panic(err)}
+    inventoryImage, err = gtk.ImageNewFromPixbuf(inventoryPixbuf)
+    if(err != nil) {panic(err)}
     inventory.SetImage(inventoryImage)
 
     // Input Textbox
-    input, _ = gtk.EntryNew()
+    input, err = gtk.EntryNew()
+    if(err != nil) {panic(err)}
     input.Connect("activate", sendCommand)
 
 
     // The rest of the window
-    rest, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    rest, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+    if(err != nil) {panic(err)}
     
     // Output Textarea
-    textareaWrapper, _ = gtk.ScrolledWindowNew(nil, nil)
+    textareaWrapper, err = gtk.ScrolledWindowNew(nil, nil)
+    if(err != nil) {panic(err)}
     textareaWrapper.SetMaxContentWidth(4)
     textareaWrapper.SetMaxContentHeight(4)
     textareaWrapper.SetPlacement(gtk.CORNER_BOTTOM_RIGHT)
     textareaWrapper.SetOverlayScrolling(true)
     textareaAdjustment = textareaWrapper.GetVAdjustment()
 
-    textarea, _ = gtk.LabelNew("")
+    textarea, err = gtk.LabelNew("")
+    if(err != nil) {panic(err)}
     textarea.SetXAlign(-1)
     textarea.SetLineWrap(true)
     textarea.SetMaxWidthChars(1)
 
-    textareastyle, _ := textarea.GetStyleContext()
+    textareastyle, err := textarea.GetStyleContext()
+    if(err != nil) {panic(err)}
     textareastyle.AddClass("textarea")
     textareastyle.AddProvider(css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
@@ -163,7 +176,11 @@ func WinLoop() {
 
 // function to try and catch when the gtk.Main process crashes and doesn't let it.
 func bitch() {
-    defer bitch()
+    defer func(){
+        if r := recover(); r != nil {
+            fmt.Println("\n\n\n\n\n\nRecovered in GTK", r, "\n\n\n\n\n\n")
+        }
+    }()
     gtk.Main()
 }
 

@@ -1,7 +1,7 @@
 package src
 
 import (
-	//"fmt"
+	"fmt"
 	"net"
 	"errors"
 
@@ -14,7 +14,7 @@ var client 		*irc.Client
 
 func join() (error) {
 	// dial in
-	connect := "localhost:6667"
+	connect := "play.ioi-xd.net:6667"
 	conn, err := net.Dial("tcp", connect)
 	if(err != nil) {
 		return errors.New("Couldn't connect to "+connect+": "+err.Error())
@@ -27,15 +27,16 @@ func join() (error) {
 	client = irc.NewClient(conn, config)
 	// Wait to make absolutely sure the client is initialized
 	for(client == nil) {}
-	err = client.Run()
-	if(err != nil) {
-		return errors.New("Disconnected from "+connect+": "+err.Error())
+	go func() {
+		err = client.Run()
+		sendToTextarea("Disconnected from "+connect+": "+err.Error())
 		inIRC = false
-	}
+	}()
 	return nil
 }
 
 func ircHandler(c *irc.Client, m *irc.Message) {
+	fmt.Println(m.String())
 	sendToTextarea(m.String())
 	if m.Command == "001" {
 		// 001 is a welcome event, so we join channels there

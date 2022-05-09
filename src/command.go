@@ -10,7 +10,8 @@ import (
 var inIRC           bool            = false
 
 func sendCommand() {
-    text, _ := input.GetText()
+    text, err := input.GetText()
+    if(err != nil) {panic(err)}
     input.SetText("")
     if(len(text) <= 0) {return}
     // is our message prefixed with /?
