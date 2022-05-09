@@ -10,9 +10,8 @@ import (
 var inIRC           bool            = false
 
 func sendCommand() {
-    text, err := input.GetText()
-    if(err != nil) {panic(err)}
-    input.SetText("")
+    text := inputBox.Text()
+    inputBox.SetText("")
     if(len(text) <= 0) {return}
     // is our message prefixed with /?
     if(string(text[0]) == "/") {
@@ -20,6 +19,7 @@ func sendCommand() {
         // Are we in an IRC server?
         if(inIRC) {
             client.Write(text) // if yes, send it as an irc command.
+            sendToTextarea("/"+text)
         } else { // Otherwise, execute it as a system command.
             // execute a system command
             commands := strings.Split(text, " ")
@@ -34,14 +34,16 @@ func sendCommand() {
                 default: cmd = exec.Command(commands[0])
             }
             switch(commands[0]) {
-            // !!! THIS IS DISCOURAGED! MOST COMMANDS SHOULD BE PROGRAMS.
-            // THIS SHOULD ONLY BE USED FOR THE BUILT IN IRC SHIT AND TESTING.
+                // !!! THIS IS DISCOURAGED! MOST COMMANDS SHOULD BE PROGRAMS.
+                // THIS SHOULD ONLY BE USED FOR THE BUILT IN IRC SHIT AND TESTING.
+                
                 // built in IRC shit
                 case "user", "nick":
                     if(len(commands) == 1) {
                         sendToTextarea("Usage: /"+commands[0]+" {desiredName}")
                     } else {
                         userID = commands[1]
+
                         sendToTextarea("You are now "+userID)
                     }
                 case "join":
@@ -82,11 +84,9 @@ func sendCommand() {
                         switch(v) {
                             case clear:
                                 textareaBuffer = textareaBuffer[:0]
-                                updateTextarea()
                             case clear_x:
-                                _, height := win.GetSize()
                                 areaMax := (height/20)
-                                for i := 0; i < areaMax; i++ {
+                                for i := 0; i < int(areaMax); i++ {
                                     sendToTextarea("")
                                 }
                             default: sendToTextarea(v)
