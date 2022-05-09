@@ -62,15 +62,6 @@ func WinInit() {
     }
     win.SetTitle("Terminal")
     win.AddEvents(int(gdk.EVENT_CONFIGURE) | 2097152)
-    // Register scroll events
-    win.Connect("scroll-event", func(w *gtk.EventBox, event *gdk.Event) {
-        dir := int16(gdk.EventScrollNewFromEvent(event).DeltaY())
-        offset -= dir
-        if(offset < 0) {
-            offset = 0
-        }
-        updateTextarea()
-    })
     win.Connect("destroy", func() {
         gtk.MainQuit()
     })
@@ -182,22 +173,13 @@ func sendToTextarea(str string) {
 }
 
 func updateTextarea() {
-    textareaAdjustment.SetValue(textareaAdjustment.GetUpper())
-    width, height := win.GetSize()
+    _, height := win.GetSize()
     var text string
     areaLength := len(textareaBuffer)
     areaMax := (height/20)-1
     for _, v := range textareaBuffer {
-        toAppend_ := v
         // Strip any bash control characters out
-        toAppend := re.ReplaceAllString(toAppend_, "")
-        // If the line we're appending is longer then the window...
-        if(len(toAppend) > width/6) {
-            // ...cut it down.
-            // (todo: find out how to wrap the text while respecting the bounds of
-            // the window)
-            toAppend = v[0:((width/6)-3)]
-        }
+        toAppend := re.ReplaceAllString(v, "")
         text += toAppend+"\n"
     }
     // If we're within the limit for lines on screen...
@@ -209,4 +191,5 @@ func updateTextarea() {
         }
     }
     textarea.SetText(text)
+    textareaAdjustment.SetValue(textareaAdjustment.GetUpper()+10)
 }

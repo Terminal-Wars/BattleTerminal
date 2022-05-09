@@ -3,7 +3,7 @@ package src
 import (
 	//"fmt"
 	"net"
-	"time"
+	"errors"
 
 	"gopkg.in/irc.v3"
 )
@@ -12,25 +12,27 @@ var userID 		string
 var client 		*irc.Client
 
 
-func join() (string) {
+func join() (error) {
 	// dial in
 	connect := "localhost:6667"
 	conn, err := net.Dial("tcp", connect)
-	if(err != nil) {return "Couldn't connect to "+connect+": "+err.Error()}
+	if(err != nil) {
+		return errors.New("Couldn't connect to "+connect+": "+err.Error())
+	}
 	config := irc.ClientConfig{
 		Nick: userID,
 		User: "terminal_wars_"+userID,
 		Handler: irc.HandlerFunc(ircHandler),
 	}
 	client = irc.NewClient(conn, config)
-	// Wait two seconds to make absolutely sure the client is initialized
-	time.Sleep(2 * time.Second) 
+	// Wait to make absolutely sure the client is initialized
+	for(client == nil) {}
 	err = client.Run()
 	if(err != nil) {
-		return "Disconnected from "+connect+": "+err.Error()
+		return errors.New("Disconnected from "+connect+": "+err.Error())
 		inIRC = false
 	}
-	return ""
+	return nil
 }
 
 func ircHandler(c *irc.Client, m *irc.Message) {

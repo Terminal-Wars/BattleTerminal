@@ -47,10 +47,13 @@ func sendCommand() {
                     if(userID == "") {
                         sendToTextarea("Please use /user first to set your nickname")
                     } else {
-                        inIRC = true
                         go func() {
                             err := join()
-                            sendToTextarea(err)
+                            if(err == nil) {
+                                inIRC = true
+                            } else {
+                                sendToTextarea(err.Error())
+                            }
                         }()
                     }
                 // net testing shit
