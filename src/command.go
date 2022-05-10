@@ -85,10 +85,15 @@ func sendCommand() {
                             case clear:
                                 textareaBuffer = textareaBuffer[:0]
                             case clear_x:
+<<<<<<< HEAD
+=======
+                                /*
+                                _, height := win.GetSize()
+>>>>>>> a10fdcfcc9d69ed208ee04e0f6ecdf8e1c73fb8b
                                 areaMax := (height/20)
                                 for i := 0; i < int(areaMax); i++ {
                                     sendToTextarea("")
-                                }
+                                }*/
                             default: sendToTextarea(v)
                         }
                     }
