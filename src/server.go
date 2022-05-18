@@ -9,6 +9,7 @@ func init() {
 	listen, err := net.Listen("tcp",":48889")
 	if(err != nil) {
 		sendToTextarea("Couldn't start BattleTerminal server: "+err.Error())
+		return
 	}
 	go func() {
 		for {

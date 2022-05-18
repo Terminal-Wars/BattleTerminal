@@ -9,9 +9,7 @@ import (
 
 var inIRC           bool            = false
 
-func sendCommand() {
-    text := inputBox.Text()
-    inputBox.SetText("")
+func SendCommand(text string) {
     if(len(text) <= 0) {return}
     // is our message prefixed with /?
     if(string(text[0]) == "/") {
@@ -34,10 +32,8 @@ func sendCommand() {
                 default: cmd = exec.Command(commands[0])
             }
             switch(commands[0]) {
-                // !!! THIS IS DISCOURAGED! MOST COMMANDS SHOULD BE PROGRAMS.
-                // THIS SHOULD ONLY BE USED FOR THE BUILT IN IRC SHIT AND TESTING.
-                
-                // built in IRC shit
+            // !!! THIS IS DISCOURAGED! MOST COMMANDS SHOULD BE PROGRAMS.
+            // THIS SHOULD ONLY BE USED FOR THE BUILT IN IRC SHIT AND TESTING.
                 case "user", "nick":
                     if(len(commands) == 1) {
                         sendToTextarea("Usage: /"+commands[0]+" {desiredName}")
@@ -54,6 +50,7 @@ func sendCommand() {
                             err := join()
                             if(err == nil) {
                                 inIRC = true
+                                joinTestChannel()
                             } else {
                                 sendToTextarea(err.Error())
                             }
@@ -85,15 +82,11 @@ func sendCommand() {
                             case clear:
                                 textareaBuffer = textareaBuffer[:0]
                             case clear_x:
-<<<<<<< HEAD
-=======
-                                /*
-                                _, height := win.GetSize()
->>>>>>> a10fdcfcc9d69ed208ee04e0f6ecdf8e1c73fb8b
+                                //_, height := win.GetSize()
                                 areaMax := (height/20)
                                 for i := 0; i < int(areaMax); i++ {
                                     sendToTextarea("")
-                                }*/
+                                }
                             default: sendToTextarea(v)
                         }
                     }
@@ -102,9 +95,10 @@ func sendCommand() {
     } else { // If not...
         // If we're in an IRC server, send it as an IRC message.
         if(inIRC) { 
-            client.Write("PRIVMSG #testing "+text)
-        } 
-        // Regardless, put it in the terminal.
-        sendToTextarea(text)
+            client.Write("MSG %%ROOM%% "+text)
+        } else {
+            // Otherwise, just put it in the terminal.
+            sendToTextarea(text)
+        }
     }
 }
