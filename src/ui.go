@@ -20,7 +20,7 @@ const (
 	AttackButtonID 			= 1
 	BagSwitchButtonID 		= 2
 
-	width 					= 640
+	width 					= 320
 	height 					= 240
 )
 
