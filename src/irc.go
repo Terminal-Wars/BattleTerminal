@@ -1,7 +1,6 @@
 package src
 
 import (
-	"fmt"
 	"net"
 	"errors"
 
@@ -25,7 +24,7 @@ func join() (error) {
 		Handler: irc.HandlerFunc(ircHandler),
 	}
 	client = irc.NewClient(conn, config)
-	// Wait to make absolutely sure the client is initialized
+	// Wait to make sure we don't try and do anything when the client is not initialized
 	for(client == nil) {}
 	go func() {
 		err = client.Run()
@@ -35,8 +34,19 @@ func join() (error) {
 	return nil
 }
 
+func joinTestChannel() {
+	if(client != nil) {
+		client.Write("JOIN #testing")
+	}
+}
+
+func leave() {
+	if(client != nil) {
+		client.Write("DISCONNECT")
+	}
+}
+
 func ircHandler(c *irc.Client, m *irc.Message) {
-	fmt.Println(m.String())
 	sendToTextarea(m.String())
 	if m.Command == "001" {
 		// 001 is a welcome event, so we join channels there
